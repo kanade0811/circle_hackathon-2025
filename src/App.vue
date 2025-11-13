@@ -1,47 +1,85 @@
-<script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-    </div>
-  </header>
-
-  <main>
-    <TheWelcome />
-  </main>
+  <div id="app">
+    <canvas ref="canvas"></canvas>
+  </div>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-}
+<script>
+export default {
+  mounted() {
+    const canvas = this.$refs.canvas;
+    const ctx = canvas.getContext("2d");
 
-.logo {
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    const draw = {
+      axis() {
+        ctx.lineWidth = 1;
+
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+
+        const grid = 50;
+        const angle = (1 / 3) * Math.PI;
+
+        ctx.strokeStyle = "red";
+        for (let x = 0; x < width; x += grid) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, height);
+          ctx.stroke();
+        }
+
+        ctx.strokeStyle = "blue";
+        for (let y = 0; y < height; y += grid) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(width, y);
+          ctx.stroke();
+        }
+        ctx.strokeStyle = "green";
+        for (let x = -height / Math.tan(angle); x < width; x += grid) {
+          ctx.beginPath();
+          ctx.moveTo(x, height);
+          ctx.lineTo(x + height / Math.tan(angle), 0);
+          ctx.stroke();
+        }
+
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(3 * grid, 0);
+        ctx.lineTo(3 * grid, height);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, 14 * grid);
+        ctx.lineTo(width, 14 * grid);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(-height / Math.tan(angle)+11*grid, height);
+        ctx.lineTo(-height / Math.tan(angle)+11*grid + height / Math.tan(angle), 0);
+        ctx.stroke();
+      },
+    };
+
+    resize();
+    draw.axis();
+  },
+};
+</script>
+
+<style>
+body,
+#app {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+canvas {
   display: block;
-  margin: 0 auto 2rem;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+  background-color: white;
 }
 </style>
