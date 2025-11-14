@@ -22,28 +22,41 @@ export default {
       // 最後の円がこれまでの円と被っていないかを判定する関数
       if (circles.length !== 0) {
         for (let circle of circles) {
-          const length = Math.hypot(circle.x - newCircle.x,circle.y - newCircle.y);
-          const radiusSum = circle.radius + newCircle.radius;
+          const length = Math.hypot(
+            circle.x - newCircle.x,
+            circle.y - newCircle.y
+          );
           // 円同士の位置が外部で無ければpushせずに作り直す
-          if (length < radiusSum) return;
+          if (
+            !(
+              length > circle.radius + newCircle.radius ||
+              length < Math.abs(circle.radius - newCircle.radius)
+            )
+          )
+            return;
         }
       }
       circles.push(newCircle);
     }
 
     const make = {
-      circle() {
-        let newCircle = {};
-        let point = [];
-        const rows = Math.floor(window.innerWidth / grid);
-        const cols = Math.floor(window.innerHeight / grid);
-        // マジックナンバー直す
-        newCircle.radius = Math.floor(Math.random() * 8) / 4;
-        for (let axis of ["x", "y"]) {
-          newCircle[axis] = Math.floor(Math.random() * 10);
+      circles() {
+        while (circles.length !== 7) {
+          let newCircle = {};
+          let point = [];
+          const rows = Math.floor(window.innerWidth / grid);
+          const cols = Math.floor(window.innerHeight / grid);
+          console.log(rows, cols);
+          // マジックナンバー直す
+          if (rows > cols) {
+            newCircle.radius = Math.random() * rows;
+          } else {
+            newCircle.radius = Math.random() * cols;
+          }
+          newCircle.x = Math.random() * (rows + newCircle.radius);
+          newCircle.y = Math.random() * (cols + newCircle.radius);
+          circlesOverlap(newCircle);
         }
-        ctx.stroke();
-        circlesOverlap(newCircle);
       },
     };
 
@@ -79,7 +92,7 @@ export default {
         ctx.lineTo(width, 10 * grid);
         ctx.stroke();
       },
-      circle() {
+      circles() {
         for (let circle of circles) {
           ctx.lineWidth = 1;
           ctx.strokeStyle = "black";
@@ -145,11 +158,9 @@ export default {
     };
 
     resize();
-    draw.axes();
-    while (circles.length !== 7) {
-      make.circle();
-    }
-    draw.circle();
+    // draw.axes();
+    make.circles();
+    draw.circles();
   },
 };
 </script>
