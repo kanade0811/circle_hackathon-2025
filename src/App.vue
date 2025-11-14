@@ -7,13 +7,45 @@
 <script>
 export default {
   mounted() {
+    const canvas = this.$refs.canvas;
+    const ctx = canvas.getContext("2d");
     const grid = 70;
     // const angle = (1 / 3) * Math.PI;
+    let circles = [];
 
     function resize() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     }
+
+    function circlesOverlap(newCircle) {
+      // 最後の円がこれまでの円と被っていないかを判定する関数
+      if (circles.length !== 0) {
+        for (let circle of circles) {
+          const length = Math.hypot(circle.x - newCircle.x,circle.y - newCircle.y);
+          const radiusSum = circle.radius + newCircle.radius;
+          // 円同士の位置が外部で無ければpushせずに作り直す
+          if (length < radiusSum) return;
+        }
+      }
+      circles.push(newCircle);
+    }
+
+    const make = {
+      circle() {
+        let newCircle = {};
+        let point = [];
+        const rows = Math.floor(window.innerWidth / grid);
+        const cols = Math.floor(window.innerHeight / grid);
+        // マジックナンバー直す
+        newCircle.radius = Math.floor(Math.random() * 8) / 4;
+        for (let axis of ["x", "y"]) {
+          newCircle[axis] = Math.floor(Math.random() * 10);
+        }
+        ctx.stroke();
+        circlesOverlap(newCircle);
+      },
+    };
 
     const draw = {
       axes() {
@@ -48,26 +80,19 @@ export default {
         ctx.stroke();
       },
       circle() {
-        let point = [];
-        const rows = Math.floor(window.innerWidth / grid);
-        const cols = Math.floor(window.innerHeight / grid);
-        // マジックナンバー直す
-        const radius=Math.floor(Math.random()*8)/4
-        for (let k = 0; k < 2; k++) {
-          point[k]=Math.floor(Math.random()*10);
+        for (let circle of circles) {
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = "black";
+          ctx.beginPath();
+          ctx.arc(
+            circle.x * grid,
+            circle.y * grid,
+            circle.radius * grid,
+            0,
+            2 * Math.PI
+          );
+          ctx.stroke();
         }
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = "black";
-        ctx.beginPath();
-        ctx.arc(point[0] * grid, point[1] * grid, radius * grid, 0, 2 * Math.PI);
-        ctx.stroke();
-      },
-      fixedCircle([x, y], radius) {
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = "black";
-        ctx.beginPath();
-        ctx.arc(x * grid, y * grid, radius * grid, 0, 2 * Math.PI);
-        ctx.stroke();
       },
       axes3D() {
         ctx.lineWidth = 1;
@@ -119,14 +144,12 @@ export default {
       },
     };
 
-    const canvas = this.$refs.canvas;
-    const ctx = canvas.getContext("2d");
-
     resize();
     draw.axes();
-    for(let k=0;k<7;k++){
-      draw.circle();
+    while (circles.length !== 7) {
+      make.circle();
     }
+    draw.circle();
   },
 };
 </script>
