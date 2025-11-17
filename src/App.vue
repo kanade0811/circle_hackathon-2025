@@ -12,6 +12,7 @@ export default {
     const grid = 70;
     // const angle = (1 / 3) * Math.PI;
     let circles = [];
+    // const elasticity=1;
 
     function resize() {
       canvas.width = window.innerWidth;
@@ -23,8 +24,8 @@ export default {
       if (circles.length !== 0) {
         for (let circle of circles) {
           const length = Math.hypot(
-            circle.x - newCircle.x,
-            circle.y - newCircle.y
+            circle.coordinate.x - newCircle.coordinate.x,
+            circle.coordinate.y - newCircle.coordinate.y
           );
           // 円同士の位置が外部で無ければpushせずに作り直す
           if (
@@ -42,19 +43,19 @@ export default {
     const make = {
       circles() {
         while (circles.length !== 7) {
-          let newCircle = {};
-          let point = [];
+          let newCircle = {
+            coordinate:{}
+          };
           const rows = Math.floor(window.innerWidth / grid);
           const cols = Math.floor(window.innerHeight / grid);
-          console.log(rows, cols);
           // マジックナンバー直す
           if (rows > cols) {
             newCircle.radius = Math.random() * rows;
           } else {
             newCircle.radius = Math.random() * cols;
           }
-          newCircle.x = Math.random() * (rows + newCircle.radius);
-          newCircle.y = Math.random() * (cols + newCircle.radius);
+          newCircle.coordinate.x = Math.random() * (rows + newCircle.radius);
+          newCircle.coordinate.y = Math.random() * (cols + newCircle.radius);
           circlesOverlap(newCircle);
         }
       },
@@ -98,8 +99,8 @@ export default {
           ctx.strokeStyle = "black";
           ctx.beginPath();
           ctx.arc(
-            circle.x * grid,
-            circle.y * grid,
+            circle.coordinate.x * grid,
+            circle.coordinate.y * grid,
             circle.radius * grid,
             0,
             2 * Math.PI
