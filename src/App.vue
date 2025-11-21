@@ -9,18 +9,37 @@ export default {
   mounted() {
     const canvas = this.$refs.canvas;
     const ctx = canvas.getContext("2d");
+    const grid = 30;
     const fps = 30;
-    const grid = 70;
-    // const angle = (1 / 3) * Math.PI;
+    const angle = (1 / 3) * Math.PI;
     let circles = [];
     const elasticity = 1;
+    const speed = 10;
 
     function resize() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     }
 
+    function circlesOverlap(circleA, circleB) {
+      const length = Math.hypot(
+        circleB.coordinate.x - circleA.coordinate.x,
+        circleB.coordinate.y - circleA.coordinate.y
+      );
+      if (!(length > circleA.radius + circleB.radius)) return true;
+      else return false;
+    }
+
     function collision(circleA, circleB) {
+      // separation
+      while (circlesOverlap(circleA, circleB)) {
+        for (let circle of [circleA, circleB]) {
+          circle.coordinate.x -= circle.velocity.x;
+          circle.coordinate.y -= circle.velocity.y;
+        }
+      }
+
+      // collision
       const e = elasticity;
       const mA = circleA.mass;
       const vAx = circleA.velocity.x;
@@ -39,65 +58,53 @@ export default {
         (mA * vAy + mB * vBy + e * mA * (vAy - vBy)) / (mA + mB);
     }
 
-    function circlesOverlap(circleA, circleB) {
-      // 最後の円がこれまでの円と被っていないかを判定する関数
-      if (circles.length === 0) return false;
-      const length = Math.hypot(
-        circleB.coordinate.x - circleA.coordinate.x,
-        circleB.coordinate.y - circleA.coordinate.y
-      );
-      /*
-      if (
-        length > circleA.radius + circleB.radius ||
-        length < Math.abs(circleA.radius - circleB.radius)
-      ) {
-        return false;
-      }
-      */
-      if (length > circleA.radius + circleB.radius) return false;
-      return true;
-    }
+    class Circle {
+      constructor() {
+        remake: while (true) {
+          this.radius = 100;
+          this.coordinate = {
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+          };
 
-    function separation(circleA, circleB) {
-      if (circlesOverlap(circleA, circleB)) {
-        for (let circle of [circleA, circleB]) {
-          circle.coordinate.x -= circle.velocity.x;
-          circle.coordinate.y -= circle.velocity.y;
+          if (!(circles.length === 0)) {
+            for (let circle of circles) {
+              const length = Math.hypot(
+                circle.coordinate.x - this.coordinate.x,
+                circle.coordinate.y - this.coordinate.y
+              );
+              if (length < circle.radius + this.radius) {
+                continue remake;
+              }
+            }
+          }
+          break remake;
         }
-      }
-    }
-
-    const make = {
-      circles() {
-        let newCircle = {
-          coordinate: {},
-          velocity: {},
+        this.mass = (4 / 3) * Math.PI * this.radius ** 3;
+        this.velocity = {
+          x: (Math.random() - 1 / 2) * speed,
+          y: (Math.random() - 1 / 2) * speed,
         };
-        const rows = Math.floor(window.innerWidth / grid);
-        const cols = Math.floor(window.innerHeight / grid);
-        // マジックナンバー直す
-        if (rows > cols) {
-          newCircle.radius = Math.random() * rows;
-        } else {
-          newCircle.radius = Math.random() * cols;
-        }
-        newCircle.coordinate.x = Math.random() * (rows + newCircle.radius);
-        newCircle.coordinate.y = Math.random() * (cols + newCircle.radius);
-        for (let circle of circles) {
-          if (circlesOverlap(circle, newCircle)) return;
-        }
-        newCircle.mass = (4 / 3) * Math.PI * newCircle.radius ** 3;
-        newCircle.velocity.x = Math.random() - 1 / 2;
-        newCircle.velocity.y = Math.random() - 1 / 2;
-        circles.push(newCircle);
-      },
+        circles.push(this);
+      }
       move() {
-        for (let circle of circles) {
-          circle.coordinate.x += circle.velocity.x;
-          circle.coordinate.y += circle.velocity.y;
-        }
-      },
-    };
+        this.coordinate.x += this.velocity.x;
+        this.coordinate.y += this.velocity.y;
+      }
+      draw() {
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "black";
+        ctx.beginPath();
+        ctx.arc(
+          this.coordinate.x,
+          this.coordinate.y,
+          this.radius,
+          0,
+          2 * Math.PI
+        );
+        ctx.stroke();
+      }
+    }
 
     const draw = {
       axes() {
@@ -130,21 +137,6 @@ export default {
         ctx.moveTo(0, 10 * grid);
         ctx.lineTo(width, 10 * grid);
         ctx.stroke();
-      },
-      circles() {
-        for (let circle of circles) {
-          ctx.lineWidth = 1;
-          ctx.strokeStyle = "black";
-          ctx.beginPath();
-          ctx.arc(
-            circle.coordinate.x * grid,
-            circle.coordinate.y * grid,
-            circle.radius * grid,
-            0,
-            2 * Math.PI
-          );
-          ctx.stroke();
-        }
       },
       axes3D() {
         ctx.lineWidth = 1;
@@ -198,14 +190,15 @@ export default {
 
     function update() {
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-      draw.circles();
-      make.move();
+      for (let circle of circles) {
+        circle.move();
+        circle.draw();
+      }
       for (let circleA of circles) {
         for (let circleB of circles) {
           if (circleA === circleB) {
             continue;
           } else if (circlesOverlap(circleA, circleB)) {
-            separation(circleA, circleB);
             collision(circleA, circleB);
           }
         }
@@ -214,9 +207,8 @@ export default {
 
     resize();
     // draw.axes();
-    while (circles.length !== 5) make.circles();
+    while (circles.length !== 5) new Circle();
     setInterval(update, 1000 / fps);
-    draw.circles();
   },
 };
 </script>
