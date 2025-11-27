@@ -30,36 +30,6 @@ export default {
       else return false;
     }
 
-    /*
-    function collision(circleA, circleB) {
-      // separation
-      while (circlesOverlap(circleA, circleB)) {
-        for (let circle of [circleA, circleB]) {
-          circle.coordinate.x -= circle.velocity.x;
-          circle.coordinate.y -= circle.velocity.y;
-        }
-      }
-
-      // collision
-      const e = elasticity;
-      const mA = circleA.mass;
-      const vAx = circleA.velocity.x;
-      const vAy = circleA.velocity.y;
-      const mB = circleB.mass;
-      const vBx = circleB.velocity.x;
-      const vBy = circleB.velocity.y;
-
-      circleA.velocity.x =
-        (mA * vAx + mB * vBx - e * mB * (vAx - vBx)) / (mA + mB);
-      circleA.velocity.y =
-        (mA * vAy + mB * vBy - e * mB * (vAy - vBy)) / (mA + mB);
-      circleB.velocity.x =
-        (mA * vAx + mB * vBx + e * mA * (vAx - vBx)) / (mA + mB);
-      circleB.velocity.y =
-        (mA * vAy + mB * vBy + e * mA * (vAy - vBy)) / (mA + mB);
-    }
-    */
-
     class Circle {
       constructor() {
         remake: while (true) {
@@ -93,31 +63,36 @@ export default {
         this.coordinate.x += this.velocity.x;
         this.coordinate.y += this.velocity.y;
       }
-      judge() {
-        let answer = {
-          circle: [],
-          border: [],
-        };
-
-        // 円と触れたかの判定
-        for (let circle of circles) {
-          if (this === circle) continue;
-          if (circlesOverlap(this, circle)) {
-            answer["circle"].push(circle);
+      circle() {
+        for (let target of circles) {
+          if (this === target) continue;
+          if (circlesOverlap(this, target)) {
+            while (circlesOverlap(this, target)) {
+              for (let circle of [this, target]) {
+                circle.coordinate.x -= circle.velocity.x;
+                circle.coordinate.y -= circle.velocity.y;
+              }
+            }
+            collision(this,target)
           }
         }
-
-        // 画面の淵との衝突
-        // ここにコードを書く
-
-        return answer;
       }
-      separate(target) {
-        while (circlesOverlap(this, target)) {
-          for (let circle of [this, target]) {
-            circle.coordinate.x -= circle.velocity.x;
-            circle.coordinate.y -= circle.velocity.y;
-          }
+      border(){
+        if(this.coordinate.x-this.radius<0){
+          this.coordinate.x=this.radius;
+          this.velocity.x*=-elasticity;
+        }
+        if(this.coordinate.x+this.radius>window.innerWidth){
+          this.coordinate.x=window.innerWidth-this.radius;
+          this.velocity.x*=-elasticity;
+        }
+        if(this.coordinate.y-this.radius<0){
+          this.coordinate.y=this.radius;
+          this.velocity.y*=-elasticity;
+        }
+        if(this.coordinate.y+this.radius>window.innerHeight){
+          this.coordinate.y=window.innerHeight-this.radius;
+          this.velocity.y*=-elasticity;
         }
       }
       draw() {
@@ -133,21 +108,10 @@ export default {
         );
         ctx.stroke();
       }
-      update(){
+      update() {
         this.move();
-        const judge=this.judge();
-        if (!(judge["circle"].length === 0 && judge["border"].length === 0)) {
-          for (let target of judge["circle"]) {
-            this.separate(target);
-            collision(this, target);
-          }
-          /*
-          for(let border of judge["border"]){
-            this.separate[border];
-            this.collision[border];
-          }
-          */
-        }
+        this.circle();
+        this.border();
         this.draw();
       }
     }
@@ -256,7 +220,7 @@ export default {
 
     function update() {
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-      for(let circle of circles){
+      for (let circle of circles) {
         circle.update();
       }
     }
