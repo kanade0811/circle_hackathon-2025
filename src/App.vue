@@ -33,7 +33,7 @@ export default {
     class Circle {
       constructor() {
         remake: while (true) {
-          this.radius = 100;
+          this.radius = Math.random()*70+50;
           this.coordinate = {
             x: Math.random() * window.innerWidth,
             y: Math.random() * window.innerHeight,
@@ -73,26 +73,26 @@ export default {
                 circle.coordinate.y -= circle.velocity.y;
               }
             }
-            collision(this,target)
+            collision(this, target);
           }
         }
       }
-      border(){
-        if(this.coordinate.x-this.radius<0){
-          this.coordinate.x=this.radius;
-          this.velocity.x*=-elasticity;
+      border() {
+        if (this.coordinate.x - this.radius < 0) {
+          this.coordinate.x = this.radius;
+          this.velocity.x *= -elasticity;
         }
-        if(this.coordinate.x+this.radius>window.innerWidth){
-          this.coordinate.x=window.innerWidth-this.radius;
-          this.velocity.x*=-elasticity;
+        if (this.coordinate.x + this.radius > window.innerWidth) {
+          this.coordinate.x = window.innerWidth - this.radius;
+          this.velocity.x *= -elasticity;
         }
-        if(this.coordinate.y-this.radius<0){
-          this.coordinate.y=this.radius;
-          this.velocity.y*=-elasticity;
+        if (this.coordinate.y - this.radius < 0) {
+          this.coordinate.y = this.radius;
+          this.velocity.y *= -elasticity;
         }
-        if(this.coordinate.y+this.radius>window.innerHeight){
-          this.coordinate.y=window.innerHeight-this.radius;
-          this.velocity.y*=-elasticity;
+        if (this.coordinate.y + this.radius > window.innerHeight) {
+          this.coordinate.y = window.innerHeight - this.radius;
+          this.velocity.y *= -elasticity;
         }
       }
       draw() {
@@ -219,7 +219,7 @@ export default {
     };
 
     function update() {
-      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       for (let circle of circles) {
         circle.update();
       }
@@ -227,7 +227,7 @@ export default {
 
     resize();
     // draw.axes();
-    while (circles.length !== 5) new Circle();
+    while (circles.length !== 7) new Circle();
     setInterval(update, 1000 / fps);
   },
 };
