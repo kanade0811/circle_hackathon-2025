@@ -30,6 +30,7 @@ export default {
       else return false;
     }
 
+    /*
     function collision(circleA, circleB) {
       // separation
       while (circlesOverlap(circleA, circleB)) {
@@ -57,6 +58,7 @@ export default {
       circleB.velocity.y =
         (mA * vAy + mB * vBy + e * mA * (vAy - vBy)) / (mA + mB);
     }
+    */
 
     class Circle {
       constructor() {
@@ -91,6 +93,33 @@ export default {
         this.coordinate.x += this.velocity.x;
         this.coordinate.y += this.velocity.y;
       }
+      judge() {
+        let answer = {
+          circle: [],
+          border: [],
+        };
+
+        // 円と触れたかの判定
+        for (let circle of circles) {
+          if (this === circle) continue;
+          if (circlesOverlap(this, circle)) {
+            answer["circle"].push(circle);
+          }
+        }
+
+        // 画面の淵との衝突
+        // ここにコードを書く
+
+        return answer;
+      }
+      separate(target) {
+        while (circlesOverlap(this, target)) {
+          for (let circle of [this, target]) {
+            circle.coordinate.x -= circle.velocity.x;
+            circle.coordinate.y -= circle.velocity.y;
+          }
+        }
+      }
       draw() {
         ctx.lineWidth = 1;
         ctx.strokeStyle = "black";
@@ -104,6 +133,43 @@ export default {
         );
         ctx.stroke();
       }
+      update(){
+        this.move();
+        const judge=this.judge();
+        if (!(judge["circle"].length === 0 && judge["border"].length === 0)) {
+          for (let target of judge["circle"]) {
+            this.separate(target);
+            collision(this, target);
+          }
+          /*
+          for(let border of judge["border"]){
+            this.separate[border];
+            this.collision[border];
+          }
+          */
+        }
+        this.draw();
+      }
+    }
+
+    function collision(circleA, circleB) {
+      // collision
+      const e = elasticity;
+      const mA = circleA.mass;
+      const vAx = circleA.velocity.x;
+      const vAy = circleA.velocity.y;
+      const mB = circleB.mass;
+      const vBx = circleB.velocity.x;
+      const vBy = circleB.velocity.y;
+
+      circleA.velocity.x =
+        (mA * vAx + mB * vBx - e * mB * (vAx - vBx)) / (mA + mB);
+      circleA.velocity.y =
+        (mA * vAy + mB * vBy - e * mB * (vAy - vBy)) / (mA + mB);
+      circleB.velocity.x =
+        (mA * vAx + mB * vBx + e * mA * (vAx - vBx)) / (mA + mB);
+      circleB.velocity.y =
+        (mA * vAy + mB * vBy + e * mA * (vAy - vBy)) / (mA + mB);
     }
 
     const draw = {
@@ -190,18 +256,8 @@ export default {
 
     function update() {
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-      for (let circle of circles) {
-        circle.move();
-        circle.draw();
-      }
-      for (let circleA of circles) {
-        for (let circleB of circles) {
-          if (circleA === circleB) {
-            continue;
-          } else if (circlesOverlap(circleA, circleB)) {
-            collision(circleA, circleB);
-          }
-        }
+      for(let circle of circles){
+        circle.update();
       }
     }
 
